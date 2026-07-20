@@ -1,0 +1,4 @@
+[policy]
+fail_on = ["abi", "selectors", "storage", "traces"]
+ignore_trace_fields = ["gas", "gas_used", "execution_time_ns"]
+require_traces = true

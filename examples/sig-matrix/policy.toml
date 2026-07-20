@@ -1,0 +1,11 @@
+version = 1
+
+[policy]
+erc1271 = true
+erc6492 = false
+erc7739_mode = "optional"
+code_bearing_eoa_fallback = true
+enforce_low_s = true
+bind_chain_id = true
+bind_verifying_contract = true
+reject_zero_signer = true

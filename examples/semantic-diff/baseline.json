@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "compiler": {
+    "version": "0.4.3",
+    "evm_version": "prague",
+    "optimize": "gas"
+  },
+  "source": {
+    "path": "Counter.vy",
+    "sha256": "same-source"
+  },
+  "contract": {
+    "abi": [
+      {
+        "type": "function",
+        "name": "increment",
+        "inputs": [{"name": "amount", "type": "uint256"}],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+      },
+      {
+        "type": "function",
+        "name": "value",
+        "inputs": [],
+        "outputs": [{"name": "", "type": "uint256"}],
+        "stateMutability": "view"
+      }
+    ],
+    "method_identifiers": {
+      "increment(uint256)": "0x7cf5dab0",
+      "value()": "0x3fa4f245"
+    },
+    "layout": {
+      "value": {"slot": 0, "type": "uint256"}
+    },
+    "bytecode_runtime": "0x6001600055",
+    "integrity": "baseline-integrity"
+  },
+  "traces": [
+    {
+      "case": "increment-from-zero",
+      "success": true,
+      "return_data": "0x",
+      "events": [],
+      "state": {"value": "7"},
+      "gas_used": 43120
+    },
+    {
+      "case": "overflow-reverts",
+      "success": false,
+      "revert_class": "arithmetic",
+      "state": {"value": "max"},
+      "gas_used": 23890
+    }
+  ]
+}

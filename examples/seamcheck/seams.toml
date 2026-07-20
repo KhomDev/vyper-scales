@@ -1,0 +1,17 @@
+version = 1
+
+[project]
+sources = ["contracts"]
+strict_unregistered = true
+
+[[seams]]
+id = "fee-router.pool-exchange"
+caller = "contracts/FeeRouter.vy"
+target = "IPool(self.pool).exchange"
+call_kind = "extcall"
+risk = "high"
+rationale = "A 6-decimal input becomes an 18-decimal output across an adversarial pool."
+required = ["adversarial-neighbor", "decimal-mismatch", "lossy-output", "revert-path"]
+evidence = [
+  { test = "tests/test_fee_router_seam.py::test_adversarial_pool_model", neighbor = "contracts/AdversarialPool.vy", covers = ["adversarial-neighbor", "decimal-mismatch", "lossy-output", "revert-path"], note = "Fixture applies decimal scaling, fees, slippage, and a configurable revert." },
+]

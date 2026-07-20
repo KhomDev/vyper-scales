@@ -1,0 +1,17 @@
+.venv/
+.ruff_cache/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Agent scratch space and generated evidence. Authored docs stay tracked.
+.work/
+artifacts/
+reports/
+*.generated.md
+*.generated.json
