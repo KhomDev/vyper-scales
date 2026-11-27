@@ -118,9 +118,11 @@ event:Deposit(address,address,uint256,uint256)
 error:Unauthorized(address)
 ```
 
-For functions it compares mutability and output types. For tuple inputs it recursively
-canonicalizes component types. A renamed input parameter does not matter to the selector;
-a changed tuple component does.
+For functions it compares mutability and output types. For events it also compares which
+inputs are `indexed`. For tuple inputs it recursively canonicalizes component types. A
+renamed input parameter does not matter to the selector; a changed tuple component does.
+An omitted ABI, selector map, storage layout, or runtime bytecode is an error, not an
+empty match. Duplicate ABI signatures are an error.
 
 ABI drift can be intentional. A new view function may be backward compatible. A removed
 function, changed output, or mutability change may not be. The tool currently classifies
@@ -160,7 +162,10 @@ initialized from scratch. For a proxy, blueprint pattern, migration script, or a
 that preserves storage while code changes, layout drift can be catastrophic.
 
 The diff compares Vyper's `layout` output as structured JSON. A changed slot, offset,
-type, or variable order fails the default policy.
+type, or variable order fails the default policy. Creation bytecode and a recorded
+integrity string are informational unless policy opts in. The absolute compiler path is
+recorded and is not itself a difference; version, EVM version, optimizer, and the
+compiler's own settings are.
 
 That is intentionally blunt. An advanced migration may move state safely through an
 explicit transformation. In that case the right artifact is not an allowlist that hides
@@ -205,9 +210,11 @@ The harness that produces the trace can be Titanoboa, Moccasin, a fork runner, o
 EVM tool. `vyper-semantic-diff` does not own the execution engine. It owns the comparison
 contract.
 
-By default it ignores gas and execution-time fields because optimizer improvements are
-expected to move them. It compares success vs revert, return data, event content and
-ordering, selected state, balances, and any other captured field.
+By default it ignores gas and execution-time fields on the trace object itself because
+optimizer improvements are expected to move them. Nested fields keep those names if a
+protocol uses them for state. It compares success vs revert, return data, event content and
+ordering, selected state, balances, and any other captured field. A trace that contains
+only a case name and ignored fields is unassessed.
 
 The same replay corpus runs against both compiler artifacts. If `withdraw-after-loss`
 returns 950,000 units under the baseline and 949,999 under the candidate, the report says
@@ -260,11 +267,17 @@ vyper-semantic-diff: PASS
   INFORMATIONAL bytecode:runtime
       baseline:  "0x6001600055"
       candidate: "0x5f600155"
+  INFORMATIONAL compiler:metadata
+      baseline:  {"evm_version": "prague", "optimize": "gas", "version": "0.4.3"}
+      candidate: {"evm_version": "prague", "optimize": "gas", "version": "0.5.0a3"}
   note: runtime bytecode changed; informational unless policy fails on bytecode
+  note: compiler metadata changed; informational unless policy fails on compiler
 ```
 
-This is the expected shape of a compiler migration: bytes changed, specified compatibility
-surfaces did not, and reviewed traces stayed equal.
+This is the expected shape of a compiler migration: bytes and compiler metadata changed,
+specified compatibility surfaces did not, and reviewed traces stayed equal. The runtime
+bytes in this fixture are illustrative. The storage layout and source hash match the
+included `Counter.vy` contract.
 
 Remove both trace sets and run again:
 

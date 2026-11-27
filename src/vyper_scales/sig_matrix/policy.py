@@ -6,16 +6,19 @@ import tomllib
 from dataclasses import asdict
 from pathlib import Path
 
-from .models import SignaturePolicy
+from .models import SignaturePolicy, SignaturePolicyError
 
-
-class SignaturePolicyError(ValueError):
-    pass
+__all__ = ["SignaturePolicyError", "fingerprint", "load_policy"]
 
 
 def load_policy(path: str | Path) -> SignaturePolicy:
-    with Path(path).open("rb") as handle:
-        raw = tomllib.load(handle)
+    try:
+        with Path(path).open("rb") as handle:
+            raw = tomllib.load(handle)
+    except tomllib.TOMLDecodeError as exc:
+        raise SignaturePolicyError(f"invalid TOML: {exc}") from exc
+    except UnicodeDecodeError as exc:
+        raise SignaturePolicyError("policy is not valid UTF-8") from exc
     if raw.get("version") != 1:
         raise SignaturePolicyError("policy version must be 1")
     values = raw.get("policy", {})
@@ -25,19 +28,7 @@ def load_policy(path: str | Path) -> SignaturePolicy:
     unknown = set(values) - known
     if unknown:
         raise SignaturePolicyError(f"unknown policy fields: {', '.join(sorted(unknown))}")
-    policy = SignaturePolicy(**values)
-    for name, value in asdict(policy).items():
-        if name == "erc7739_mode":
-            continue
-        if not isinstance(value, bool):
-            raise SignaturePolicyError(f"policy.{name} must be a boolean")
-    if policy.erc7739_mode not in {"disabled", "optional", "required"}:
-        raise SignaturePolicyError("policy.erc7739_mode must be disabled, optional, or required")
-    if policy.erc6492 and not policy.erc1271:
-        raise SignaturePolicyError("ERC-6492 support requires ERC-1271 support")
-    if policy.erc7739_mode != "disabled" and not policy.erc1271:
-        raise SignaturePolicyError("ERC-7739 mode requires ERC-1271 support")
-    return policy
+    return SignaturePolicy(**values)
 
 
 def fingerprint(policy: SignaturePolicy) -> str:

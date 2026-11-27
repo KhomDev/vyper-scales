@@ -13,6 +13,7 @@ class Artifact:
     method_identifiers: dict[str, str]
     storage_layout: dict[str, Any]
     bytecode_runtime: str
+    bytecode_creation: str
     integrity: str
     traces: tuple[dict[str, Any], ...]
 

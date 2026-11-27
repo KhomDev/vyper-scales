@@ -299,11 +299,17 @@ place.
 - a declared call site;
 - a required set of threat dimensions;
 - evidence entries claiming to cover those dimensions;
-- files that still exist at the declared paths.
+- files that still exist at the declared paths;
+- for a Python `path::node` selector, a function or class defined in that file.
 
 It does not execute the evidence test. CI should do that separately. It does not inspect
-the test and decide whether the test is honest. It does not prove that a fixture matches
-production. It cannot discover economic assumptions that were never written down.
+the test and decide whether the test is honest, and it does not follow imports into other
+modules. It does not prove that a fixture matches production. It cannot discover economic
+assumptions that were never written down.
+
+A call written with `extcall`, `staticcall`, or `raw_call` that the scanner cannot
+classify is `UNASSESSED` and fails the gate. It is not treated as absent. The same failure
+applies when a scanned file resolves outside the manifest directory.
 
 A malicious author can write `covers = ["everything"]` beside an empty test. No static
 format can cure a dishonest review process.

@@ -39,7 +39,7 @@ build-backend = "hatchling.build"
 packages = ["src/vyper_scales"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "examples"]
 addopts = "-ra"
 
 [tool.ruff]

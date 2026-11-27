@@ -43,8 +43,10 @@ uv run vyper-sig-matrix generate \
 
 ## What these tools do not prove
 
-- A `seamcheck` PASS proves that declared evidence exists and covers declared threat
-  dimensions. It does not prove the test itself is correct.
+- A `seamcheck` PASS proves that declared evidence files exist, Python test selectors
+  name functions or classes in those files, and the declared threat dimensions are covered.
+  It does not prove the test itself is correct. Calls the scanner cannot classify are
+  `UNASSESSED`, not absent.
 - A semantic-diff PASS proves equality over the captured artifacts and traces. It is
   not a proof of compiler equivalence over all possible inputs.
 - A signature-matrix PASS proves the adapter results match the selected policy. It is
