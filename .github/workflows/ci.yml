@@ -16,16 +16,23 @@ jobs:
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
         with:
           enable-cache: true
-          python-version-file: ".python-version"
       - run: uv sync --locked --dev
       - run: uv run pytest
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - name: Install the built wheel and run entry points
         run: |
-          uv build -o "${RUNNER_TEMP:-/tmp}/dist"
-          uv venv --python 3.12 /tmp/wheelcheck
-          uv pip install --python /tmp/wheelcheck/bin/python /tmp/dist/*.whl
-          /tmp/wheelcheck/bin/seamcheck --help >/dev/null
-          /tmp/wheelcheck/bin/vyper-semantic-diff --help >/dev/null
-          /tmp/wheelcheck/bin/vyper-sig-matrix --help >/dev/null
+          dist="${RUNNER_TEMP}/dist"
+          venv="${RUNNER_TEMP}/wheelcheck"
+          uv build -o "$dist"
+          uv venv --python 3.12 "$venv"
+          shopt -s nullglob
+          wheels=("$dist"/*.whl)
+          if [ "${#wheels[@]}" -ne 1 ]; then
+            echo "expected one wheel in ${dist}" >&2
+            exit 1
+          fi
+          uv pip install --python "$venv/bin/python" "${wheels[0]}"
+          "$venv/bin/seamcheck" --help >/dev/null
+          "$venv/bin/vyper-semantic-diff" --help >/dev/null
+          "$venv/bin/vyper-sig-matrix" --help >/dev/null
