@@ -24,18 +24,17 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         report = analyze(load_manifest(args.manifest))
+        renderers = {"text": render_text, "json": render_json, "markdown": render_markdown}
+        output = renderers[args.format](report)
+        if args.output:
+            path = Path(args.output)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(output, encoding="utf-8")
+        else:
+            print(output, end="")
     except (OSError, ManifestError) as exc:
         print(f"seamcheck: ERROR: {exc}", file=sys.stderr)
         return 2
-
-    renderers = {"text": render_text, "json": render_json, "markdown": render_markdown}
-    output = renderers[args.format](report)
-    if args.output:
-        path = Path(args.output)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(output)
-    else:
-        print(output, end="")
     return report.exit_code
 
 

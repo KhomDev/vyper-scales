@@ -10,12 +10,22 @@ permissions:
 jobs:
   qa:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
         with:
           enable-cache: true
+          python-version-file: ".python-version"
       - run: uv sync --locked --dev
       - run: uv run pytest
       - run: uv run ruff check .
       - run: uv run ruff format --check .
+      - name: Install the built wheel and run entry points
+        run: |
+          uv build -o "${RUNNER_TEMP:-/tmp}/dist"
+          uv venv --python 3.12 /tmp/wheelcheck
+          uv pip install --python /tmp/wheelcheck/bin/python /tmp/dist/*.whl
+          /tmp/wheelcheck/bin/seamcheck --help >/dev/null
+          /tmp/wheelcheck/bin/vyper-semantic-diff --help >/dev/null
+          /tmp/wheelcheck/bin/vyper-sig-matrix --help >/dev/null

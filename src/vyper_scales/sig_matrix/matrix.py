@@ -69,7 +69,11 @@ def generate_cases(policy: SignaturePolicy) -> tuple[MatrixCase, ...]:
             "valid-high-s-twin",
             "reject" if policy.enforce_low_s else "accept",
             "canonicality-reject" if policy.enforce_low_s else "ecrecover",
-            "Low-s enforcement removes the malleable twin signature.",
+            (
+                "Low-s enforcement removes the malleable twin signature."
+                if policy.enforce_low_s
+                else "Low-s enforcement is disabled, so the malleable twin remains acceptable."
+            ),
             "EIP-2",
         ),
         _case(
@@ -78,7 +82,11 @@ def generate_cases(policy: SignaturePolicy) -> tuple[MatrixCase, ...]:
             "zero-recovery",
             "reject" if policy.reject_zero_signer else "accept",
             "zero-signer-guard" if policy.reject_zero_signer else "ecrecover",
-            "A failed recovery must not authorize an empty signer.",
+            (
+                "A failed recovery must not authorize an empty signer."
+                if policy.reject_zero_signer
+                else "This policy accepts a zero signer recovered from a failed or empty signature."
+            ),
         ),
         _case(
             "chain-domain-replay",
@@ -232,7 +240,11 @@ def generate_cases(policy: SignaturePolicy) -> tuple[MatrixCase, ...]:
                     "wallet-approved-raw",
                     raw_expected,
                     "erc7739-policy" if policy.erc7739_mode == "required" else "erc1271-staticcall",
-                    "Required mode rejects raw digests that omit defensive rehashing.",
+                    (
+                        "Required mode rejects raw digests that omit defensive rehashing."
+                        if policy.erc7739_mode == "required"
+                        else "Optional mode still accepts a raw digest without defensive rehashing."
+                    ),
                     "ERC-7739",
                     "ERC-1271",
                     domain="raw",
@@ -249,4 +261,8 @@ def generate_cases(policy: SignaturePolicy) -> tuple[MatrixCase, ...]:
                 ),
             ]
         )
-    return tuple(cases)
+    result = tuple(cases)
+    identifiers = [case.case_id for case in result]
+    if len(identifiers) != len(set(identifiers)):
+        raise ValueError("duplicate signature matrix case id")
+    return result

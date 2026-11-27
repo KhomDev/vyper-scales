@@ -26,6 +26,8 @@ def render_text(report: Report) -> str:
         lines.append(
             f"  UNREGISTERED {site.path}:{site.line} {site.kind} {site.target}.{site.method}"
         )
+    for call in report.unassessed:
+        lines.append(f"  UNASSESSED {call.path}:{call.line} {call.kind} syntax was not classified")
     for warning in report.warnings:
         lines.append(f"  warning: {warning}")
     return "\n".join(lines) + "\n"
@@ -51,6 +53,12 @@ def render_markdown(report: Report) -> str:
         lines.extend(
             f"- `{site.path}:{site.line}` — `{site.kind} {site.target}.{site.method}`"
             for site in report.unregistered
+        )
+    if report.unassessed:
+        lines.extend(["", "## Unassessed calls", ""])
+        lines.extend(
+            f"- `{call.path}:{call.line}` — `{call.kind}` syntax was not classified"
+            for call in report.unassessed
         )
     lines.extend(
         [

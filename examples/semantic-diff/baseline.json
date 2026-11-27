@@ -7,7 +7,7 @@
   },
   "source": {
     "path": "Counter.vy",
-    "sha256": "same-source"
+    "sha256": "be6beb964b655bfd897a1f91429782a4332b58c695e4a9c981a776e6797577b9"
   },
   "contract": {
     "abi": [
@@ -31,10 +31,11 @@
       "value()": "0x3fa4f245"
     },
     "layout": {
-      "value": {"slot": 0, "type": "uint256"}
+      "storage_layout": {
+        "value": {"type": "uint256", "n_slots": 1, "slot": 0}
+      }
     },
-    "bytecode_runtime": "0x6001600055",
-    "integrity": "baseline-integrity"
+    "bytecode_runtime": "0x6001600055"
   },
   "traces": [
     {

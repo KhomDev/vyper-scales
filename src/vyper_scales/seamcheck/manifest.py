@@ -25,8 +25,13 @@ def _safe_relative(root: Path, value: str, field: str) -> str:
 
 def load_manifest(path: str | Path) -> Manifest:
     manifest_path = Path(path).resolve()
-    with manifest_path.open("rb") as handle:
-        raw = tomllib.load(handle)
+    try:
+        with manifest_path.open("rb") as handle:
+            raw = tomllib.load(handle)
+    except tomllib.TOMLDecodeError as exc:
+        raise ManifestError(f"invalid TOML in {manifest_path}: {exc}") from exc
+    except UnicodeDecodeError as exc:
+        raise ManifestError(f"manifest is not valid UTF-8: {manifest_path}") from exc
 
     if raw.get("version") != 1:
         raise ManifestError("manifest version must be 1")

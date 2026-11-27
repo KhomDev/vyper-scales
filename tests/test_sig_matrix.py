@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from vyper_scales.sig_matrix.checker import ResultsError, check
+from vyper_scales.sig_matrix.checker import ResultsError, check, load_results
 from vyper_scales.sig_matrix.matrix import generate_cases
 from vyper_scales.sig_matrix.models import SignaturePolicy
 from vyper_scales.sig_matrix.policy import SignaturePolicyError, load_policy
@@ -105,6 +105,33 @@ def test_duplicate_observed_result_is_error():
     observed = _passing_results(policy)
     with pytest.raises(ResultsError, match="duplicate"):
         check(policy, observed + (observed[0],))
+
+
+def test_embedded_policy_fingerprint_must_match(tmp_path: Path):
+    policy = load_policy(POLICY_PATH)
+    payload = {
+        "policy_fingerprint": "0" * 64,
+        "results": list(_passing_results(policy)),
+    }
+    path = tmp_path / "results.json"
+    path.write_text(json.dumps(payload))
+    with pytest.raises(ResultsError, match="policy_fingerprint"):
+        check(policy, load_results(path))
+    payload["policy_fingerprint"] = check(policy, _passing_results(policy)).policy_fingerprint
+    path.write_text(json.dumps(payload))
+    assert check(policy, load_results(path)).status == "PASS"
+
+
+def test_invalid_policy_cannot_be_constructed():
+    with pytest.raises(SignaturePolicyError, match="6492"):
+        SignaturePolicy(erc1271=False, erc6492=True, erc7739_mode="disabled")
+
+
+def test_result_ids_are_unique_and_non_empty():
+    cases = generate_cases(load_policy(POLICY_PATH))
+    assert len(cases) == len({case.case_id for case in cases})
+    with pytest.raises(ResultsError, match="id"):
+        check(load_policy(POLICY_PATH), ({"id": "", "observed": "accept"},))
 
 
 def test_result_shape_is_json_serializable():

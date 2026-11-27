@@ -277,7 +277,9 @@ uv run vyper-sig-matrix generate \
 
 The output contains twenty cases and a SHA-256 fingerprint of the normalized policy. The
 fingerprint matters when evidence is generated in another job: results should be reviewed
-against the exact policy that produced the expectations.
+against the exact policy that produced the expectations. If a results document includes
+`policy_fingerprint`, `check` rejects the file when that value is not the fingerprint of
+the policy it was given.
 
 ## Connect the matrix to the real verifier
 

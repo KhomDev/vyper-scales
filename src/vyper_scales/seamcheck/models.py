@@ -49,6 +49,14 @@ class Manifest:
 
 
 @dataclass(frozen=True)
+class UnassessedCall:
+    path: str
+    line: int
+    kind: str
+    source: str
+
+
+@dataclass(frozen=True)
 class SeamResult:
     seam_id: str
     status: str
@@ -66,12 +74,9 @@ class Report:
     status: str
     seams: tuple[SeamResult, ...]
     unregistered: tuple[CallSite, ...] = field(default_factory=tuple)
+    unassessed: tuple[UnassessedCall, ...] = field(default_factory=tuple)
     warnings: tuple[str, ...] = field(default_factory=tuple)
 
     @property
     def exit_code(self) -> int:
-        if any(result.status == "ERROR" for result in self.seams):
-            return 2
-        if self.status == "GAP":
-            return 1
-        return 0
+        return {"PASS": 0, "GAP": 1, "ERROR": 2, "UNASSESSED": 3}[self.status]

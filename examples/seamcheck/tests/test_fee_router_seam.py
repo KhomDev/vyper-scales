@@ -8,6 +8,16 @@ def adversarial_quote(dx: int, fee_bps: int, slippage_bps: int, reject: bool) ->
     return dx * SCALE_6_TO_18 * (BPS - fee_bps - slippage_bps) // BPS
 
 
+def friendly_quote(dx: int) -> int:
+    """Same contract as FriendlyPool: return the input unchanged."""
+    return dx
+
+
+def test_friendly_pool_hides_decimal_scaling():
+    dx = 5_000_000
+    assert friendly_quote(dx) != adversarial_quote(dx, 10, 40, False)
+
+
 def test_adversarial_pool_model():
     dx = 5_000_000
     assert adversarial_quote(dx, 10, 40, False) == dx * SCALE_6_TO_18 * 9_950 // BPS
